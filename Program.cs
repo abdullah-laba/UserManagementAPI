@@ -16,6 +16,9 @@ namespace UserManagementAPI
 
             var app = builder.Build();
 
+            // Use custom exception handling middleware to return JSON errors
+            app.UseMiddleware<UserManagementAPI.Middleware.ExceptionHandlingMiddleware>();
+
             // Configure the HTTP request pipeline.
             if (!app.Environment.IsDevelopment())
             {

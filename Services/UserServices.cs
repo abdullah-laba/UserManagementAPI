@@ -5,10 +5,12 @@ namespace UserManagementAPI.Services
     public class UserServices
     {
         private readonly Db _db;
+        private readonly ILogger<UserServices> _logger;
 
-        public UserServices(Db db)
+        public UserServices(Db db, ILogger<UserServices> logger)
         {
             _db = db;
+            _logger = logger;
         }
 
         public List<User> GetUser(string? id)
@@ -29,29 +31,57 @@ namespace UserManagementAPI.Services
         public User CreateUser(User user)
         {
             if (user == null) throw new ArgumentNullException(nameof(user));
-            if (string.IsNullOrWhiteSpace(user.Id))
+            try
             {
-                user.Id = Guid.NewGuid().ToString();
-            }
+                if (string.IsNullOrWhiteSpace(user.Id))
+                {
+                    user.Id = Guid.NewGuid().ToString();
+                }
 
-            _db.Data[user.Id] = user;
-            return user;
+                _db.Data[user.Id] = user;
+                _logger.LogInformation("User created with id {UserId}", user.Id);
+                return user;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating user");
+                throw;
+            }
         }
 
         public bool UpdateUser(string id, User updated)
         {
             if (string.IsNullOrWhiteSpace(id) || updated == null) return false;
-            if (!_db.Data.ContainsKey(id)) return false;
+            try
+            {
+                if (!_db.Data.ContainsKey(id)) return false;
 
-            updated.Id = id;
-            _db.Data[id] = updated;
-            return true;
+                updated.Id = id;
+                _db.Data[id] = updated;
+                _logger.LogInformation("User updated {UserId}", id);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating user {UserId}", id);
+                throw;
+            }
         }
 
         public bool DeleteUser(string id)
         {
             if (string.IsNullOrWhiteSpace(id)) return false;
-            return _db.Data.Remove(id);
+            try
+            {
+                var removed = _db.Data.Remove(id);
+                if (removed) _logger.LogInformation("User deleted {UserId}", id);
+                return removed;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting user {UserId}", id);
+                throw;
+            }
         }
     }
 }
