@@ -19,6 +19,12 @@ namespace UserManagementAPI
             // Use custom exception handling middleware to return JSON errors
             app.UseMiddleware<UserManagementAPI.Middleware.ExceptionHandlingMiddleware>();
 
+            // Authentication middleware should run after error handling to convert auth failures to 401
+            app.UseMiddleware<UserManagementAPI.Middleware.AuthenticationMiddleware>();
+
+            // Request/response logging middleware (registered last as required)
+            app.UseMiddleware<UserManagementAPI.Middleware.RequestResponseLoggingMiddleware>();
+
             // Configure the HTTP request pipeline.
             if (!app.Environment.IsDevelopment())
             {
